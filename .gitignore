@@ -1,0 +1,8 @@
+NUnit/packages/*
+bin
+obj
+*.suo
+*.user
+*.vspscc
+NUnit/.vs
+*/_sgbak/*
