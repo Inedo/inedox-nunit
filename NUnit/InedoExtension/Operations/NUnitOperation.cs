@@ -13,33 +13,26 @@ using Inedo.Extensibility.Operations;
 namespace Inedo.Extensions.NUnit.Operations
 {
     [Tag("unit-tests")]
-    [ScriptAlias("Execute-NUnit")]
+    [ScriptAlias("Execute-TestProject")]
+    [ScriptAlias("Execute-NUnit", Obsolete = true)]
     [DisplayName("Execute NUnit Tests")]
     [Description("Runs NUnit unit tests on a specified project, assembly, or NUnit file.")]
-    [ScriptNamespace("NUnit", PreferUnqualified = true)]
+    [ScriptNamespace("NUnit")]
     public sealed class NUnitOperation : ExecuteOperation
     {
         [Required]
         [ScriptAlias("TestFile")]
         [DisplayName("Test file")]
-        [Description("The file nunit will test against (could be dll, proj, or config file based on test runner).")]
+        [Description("The file NUnit will test against (could be dll, proj, or config file based on test runner).")]
         public string TestFile { get; set; }
-        [Required]
-        [ScriptAlias("NUnitExePath")]
-        [DisplayName("nunit path")]
-        [Description("The path to the nunit test runner executable.")]
-        public string ExePath { get; set; }
-        [ScriptAlias(nameof(IsNUnit3))]
-        [DisplayName("Is NUnit v3")]
-        [Description("When set to true, a different syntax will be used for command-line arguments.")]
-        public bool IsNUnit3 { get; set; }
         [ScriptAlias("Arguments")]
         [DisplayName("Additional arguments")]
-        [Description("Raw command line arguments passed to the nunit test runner.")]
+        [Description("Raw command line arguments passed to the NUnit test runner.")]
         public string AdditionalArguments { get; set; }
-        [ScriptAlias("OutputDirectory")]
-        [DisplayName("Output directory")]
-        [Description("The directory to generate the XML test results.")]
+        [ScriptAlias("OutputFile")]
+        [ScriptAlias("OutputDirectory", Obsolete = true)]
+        [DisplayName("Output file")]
+        [PlaceholderText("(randomly generated name)")]
         public string CustomXmlOutputPath { get; set; }
 
         [Category("Advanced")]
@@ -48,6 +41,18 @@ namespace Inedo.Extensions.NUnit.Operations
         [Description("When multiple sets of tests are performed, unique group names will categorize them in the UI.")]
         [PlaceholderText("NUnit")]
         public string GroupName { get; set; }
+        [Category("Advanced")]
+        [ScriptAlias("IsNUnit3")]
+        [DisplayName("Is NUnit v3")]
+        [Description("When set to true, a different syntax will be used for command-line arguments.")]
+        [DefaultValue(true)]
+        public bool IsNUnit3 { get; set; } = true;
+        [Category("Advanced")]
+        [ScriptAlias("NUnitExePath")]
+        [DisplayName("nunit path")]
+        [Description("The path to the nunit test runner executable.")]
+        [DefaultValue("$NUnitConsolePath")]
+        public string ExePath { get; set; }
 
         public override async Task ExecuteAsync(IOperationExecutionContext context)
         {
@@ -55,19 +60,22 @@ namespace Inedo.Extensions.NUnit.Operations
             var testFilePath = context.ResolvePath(this.TestFile);
             this.LogDebug("Test file: " + testFilePath);
 
-            var exePath = context.ResolvePath(this.ExePath);
-            this.LogDebug("Exe path: " + exePath);
-
-            if (!fileOps.FileExists(testFilePath))
+            if (!await fileOps.FileExistsAsync(testFilePath))
             {
                 this.LogError($"Test file {testFilePath} does not exist.");
                 return;
             }
 
-            if (!fileOps.FileExists(exePath))
+            var exePath = context.ResolvePath(this.ExePath);
+            if (await fileOps.FileExistsAsync(exePath))
             {
-                this.LogError($"NUnit runner not found at {exePath}.");
-                return;
+                this.LogDebug("Exe path: " + exePath);
+            }
+            else
+            {
+                exePath = this.ExePath;
+                // different message formatting to assit with debugging
+                this.LogDebug("Using executable: " + exePath);
             }
 
             string outputFilePath;
@@ -164,7 +172,7 @@ namespace Inedo.Extensions.NUnit.Operations
                     this.LogDebug($"Deleting temp output file ({outputFilePath})...");
                     try
                     {
-                        fileOps.DeleteFile(outputFilePath);
+                        await fileOps.DeleteFileAsync(outputFilePath);
                     }
                     catch
                     {

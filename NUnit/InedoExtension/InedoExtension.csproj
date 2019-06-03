@@ -66,6 +66,7 @@
   <ItemGroup>
     <Compile Include="Operations\NUnitOperation.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="VariableFunctions\NUnitConsolePathVariableFunction.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
