@@ -13,8 +13,8 @@ using Inedo.Extensibility.Operations;
 namespace Inedo.Extensions.NUnit.Operations
 {
     [Tag("unit-tests")]
-    [ScriptAlias("Execute-NUnit", Obsolete = true)]
     [ScriptAlias("Execute-TestProject")]
+    [ScriptAlias("Execute-NUnit", Obsolete = true)]
     [DisplayName("Execute NUnit Tests")]
     [Description("Runs NUnit unit tests on a specified project, assembly, or NUnit file.")]
     [ScriptNamespace("NUnit")]
@@ -29,8 +29,8 @@ namespace Inedo.Extensions.NUnit.Operations
         [DisplayName("Additional arguments")]
         [Description("Raw command line arguments passed to the NUnit test runner.")]
         public string AdditionalArguments { get; set; }
-        [ScriptAlias("OutputDirectory", Obsolete = true)]
         [ScriptAlias("OutputFile")]
+        [ScriptAlias("OutputDirectory", Obsolete = true)]
         [DisplayName("Output file")]
         [PlaceholderText("(randomly generated name)")]
         public string CustomXmlOutputPath { get; set; }
